@@ -14,6 +14,7 @@ Daniel Brandão
 - Daniel Costa Carvalho Martins
 - Thaís Rainara Marques de Morais
 - Matheus Mendes
+- Eduardo Lins
 
 ## Data de entrega
 - 15 de junho de 2026

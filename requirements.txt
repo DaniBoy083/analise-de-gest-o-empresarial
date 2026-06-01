@@ -1,0 +1,3 @@
+pandas>=2.2.0
+kagglehub==1.0.1
+kagglesdk==0.1.23

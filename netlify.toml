@@ -1,0 +1,6 @@
+[build]
+  command = "python -m pip install --upgrade pip && python -m pip install -r requirements.txt && python main.py --output-dir docs/site"
+  publish = "docs/site"
+
+[build.environment]
+  PYTHON_VERSION = "3.12"

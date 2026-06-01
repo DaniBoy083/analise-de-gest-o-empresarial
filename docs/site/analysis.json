@@ -1,0 +1,699 @@
+{
+  "meta": {
+    "generated_at": "2026-06-01T12:15:48.254904+00:00",
+    "dataset_slug": "nathanrocha/recarga-de-veculos-eltricos-brasil",
+    "dataset_origin": "C:\\Users\\thefu\\.cache\\kagglehub\\datasets\\nathanrocha\\recarga-de-veculos-eltricos-brasil\\versions\\3",
+    "kaggle_url": "https://www.kaggle.com/datasets/nathanrocha/recarga-de-veculos-eltricos-brasil",
+    "kaggle_download_url": "https://www.kaggle.com/datasets/nathanrocha/recarga-de-veculos-eltricos-brasil?resource=download",
+    "source_files": {
+      "carros_eletricos": "C:\\Users\\thefu\\.cache\\kagglehub\\datasets\\nathanrocha\\recarga-de-veculos-eltricos-brasil\\versions\\3\\carros_eletricos.csv",
+      "monitoramento_vendas": "C:\\Users\\thefu\\.cache\\kagglehub\\datasets\\nathanrocha\\recarga-de-veculos-eltricos-brasil\\versions\\3\\monitoramento_vendas.csv",
+      "charging_stations": "C:\\Users\\thefu\\.cache\\kagglehub\\datasets\\nathanrocha\\recarga-de-veculos-eltricos-brasil\\versions\\3\\charging_stations_2025_world.csv"
+    }
+  },
+  "executive_summary": "O mercado brasileiro de eletrificados apresenta crescimento forte de vendas, com concentracao em poucos fabricantes e aceleracao de infraestrutura. A recomendacao atual para investimento prioritario e Sao Paulo, considerando densidade de estacoes, potencia media e participacao de recarga rapida.",
+  "kpis": {
+    "total_units": 485039,
+    "total_models": 1008,
+    "total_manufacturers": 57,
+    "top_manufacturer": "BYD",
+    "top_manufacturer_units": 164705,
+    "top_manufacturer_share": 33.96,
+    "top_model": "SONG PLUS GS DM",
+    "top_model_units": 25577,
+    "growth_cagr": 71.11,
+    "best_month": "agosto",
+    "best_month_units": 56347,
+    "br_station_count": 640,
+    "recommended_state": "Sao Paulo"
+  },
+  "charts": {
+    "manufacturer_share": {
+      "labels": [
+        "BYD",
+        "TOYOTA",
+        "GWM",
+        "FIAT",
+        "CAOA CHERY",
+        "VOLVO",
+        "BMW",
+        "M.BENZ"
+      ],
+      "values": [
+        164705,
+        74263,
+        61752,
+        32448,
+        31638,
+        27727,
+        17496,
+        11878
+      ]
+    },
+    "yearly_sales": {
+      "labels": [
+        "2012",
+        "2013",
+        "2014",
+        "2015",
+        "2016",
+        "2017",
+        "2018",
+        "2019",
+        "2020",
+        "2021",
+        "2022",
+        "2023",
+        "2024",
+        "2025"
+      ],
+      "values": [
+        117,
+        491,
+        855,
+        846,
+        1091,
+        3296,
+        3970,
+        11858,
+        19745,
+        34990,
+        49245,
+        93927,
+        177358,
+        126087
+      ]
+    },
+    "yoy_growth": {
+      "labels": [
+        "2012",
+        "2013",
+        "2014",
+        "2015",
+        "2016",
+        "2017",
+        "2018",
+        "2019",
+        "2020",
+        "2021",
+        "2022",
+        "2023",
+        "2024",
+        "2025"
+      ],
+      "values": [
+        null,
+        319.66,
+        74.13,
+        -1.05,
+        28.96,
+        202.11,
+        20.45,
+        198.69,
+        66.51,
+        77.21,
+        40.74,
+        90.73,
+        88.83,
+        -28.91
+      ]
+    },
+    "monthly_sales": {
+      "labels": [
+        "janeiro",
+        "fevereiro",
+        "março",
+        "abril",
+        "maio",
+        "junho",
+        "julho",
+        "agosto",
+        "setembro",
+        "outubro",
+        "novembro",
+        "dezembro"
+      ],
+      "values": [
+        35629,
+        35527,
+        42451,
+        42180,
+        44877,
+        46665,
+        51962,
+        56347,
+        35174,
+        37969,
+        41483,
+        53612
+      ]
+    },
+    "state_stations": {
+      "labels": [
+        "Sao Paulo",
+        "Rio Grande do Sul",
+        "Santa Catarina",
+        "Parana",
+        "Ceara",
+        "Bahia",
+        "Minas Gerais",
+        "Alagoas",
+        "Paraiba",
+        "Sergipe",
+        "Rio de Janeiro",
+        "Rio Grande do Norte",
+        "Maranhao",
+        "Mato Grosso",
+        "Pernambuco",
+        "Goias",
+        "Piaui",
+        "Para",
+        "Espirito Santo",
+        "Tocantins"
+      ],
+      "values": [
+        78,
+        54,
+        35,
+        31,
+        57,
+        42,
+        25,
+        12,
+        17,
+        6,
+        34,
+        24,
+        24,
+        2,
+        16,
+        27,
+        21,
+        8,
+        12,
+        6
+      ],
+      "fast_dc_rate": [
+        71.79,
+        55.56,
+        68.57,
+        74.19,
+        15.79,
+        38.1,
+        60.0,
+        75.0,
+        58.82,
+        83.33,
+        29.41,
+        33.33,
+        25.0,
+        50.0,
+        37.5,
+        18.52,
+        23.81,
+        37.5,
+        25.0,
+        16.67
+      ]
+    }
+  },
+  "tables": {
+    "top_models": [
+      {
+        "modelo": "SONG PLUS GS DM",
+        "fabricante": "BYD",
+        "quantidade": 25577,
+        "market_share": 5.3
+      },
+      {
+        "modelo": "XRX HYBRID",
+        "fabricante": "TOYOTA",
+        "quantidade": 22360,
+        "market_share": 4.6
+      },
+      {
+        "modelo": "BYD DOLPHIN MINI GS5EV",
+        "fabricante": "BYD",
+        "quantidade": 17516,
+        "market_share": 3.6
+      },
+      {
+        "modelo": "DOLPHIN GS 180EV",
+        "fabricante": "BYD",
+        "quantidade": 17467,
+        "market_share": 3.6
+      },
+      {
+        "modelo": "CCROSS XRX HYBRID",
+        "fabricante": "TOYOTA",
+        "quantidade": 17344,
+        "market_share": 3.6
+      },
+      {
+        "modelo": "DOLPHIN MINI GS EV",
+        "fabricante": "BYD",
+        "quantidade": 13656,
+        "market_share": 2.8
+      },
+      {
+        "modelo": "BYD SONG PRO GS DM",
+        "fabricante": "BYD",
+        "quantidade": 13374,
+        "market_share": 2.8
+      },
+      {
+        "modelo": "FASTBACK AUDACE HYB",
+        "fabricante": "FIAT",
+        "quantidade": 11687,
+        "market_share": 2.4
+      },
+      {
+        "modelo": "HAVAL H6 PREM HEV",
+        "fabricante": "GWM",
+        "quantidade": 11267,
+        "market_share": 2.3
+      },
+      {
+        "modelo": "APREMIUMH",
+        "fabricante": "TOYOTA",
+        "quantidade": 10426,
+        "market_share": 2.1
+      },
+      {
+        "modelo": "BYD SONG PLUS GS DM",
+        "fabricante": "BYD",
+        "quantidade": 8924,
+        "market_share": 1.8
+      },
+      {
+        "modelo": "COROLLA APREMIUMH",
+        "fabricante": "TOYOTA",
+        "quantidade": 8827,
+        "market_share": 1.8
+      },
+      {
+        "modelo": "HAVAL H6 GT",
+        "fabricante": "GWM",
+        "quantidade": 8719,
+        "market_share": 1.8
+      },
+      {
+        "modelo": "PULSE AUDACE HYB",
+        "fabricante": "FIAT",
+        "quantidade": 8462,
+        "market_share": 1.7
+      },
+      {
+        "modelo": "DOLPHIN MINI GS5EV",
+        "fabricante": "BYD",
+        "quantidade": 8310,
+        "market_share": 1.7
+      },
+      {
+        "modelo": "HAVAL H6 PREM PHEV",
+        "fabricante": "GWM",
+        "quantidade": 7980,
+        "market_share": 1.6
+      },
+      {
+        "modelo": "BYD KING GS DM",
+        "fabricante": "BYD",
+        "quantidade": 7757,
+        "market_share": 1.6
+      },
+      {
+        "modelo": "GWM HAVAL H6 PHEV 19",
+        "fabricante": "GWM",
+        "quantidade": 7591,
+        "market_share": 1.6
+      },
+      {
+        "modelo": "PRO HA",
+        "fabricante": "CAOA CHERY",
+        "quantidade": 7054,
+        "market_share": 1.5
+      },
+      {
+        "modelo": "TIGGO8 PHEV",
+        "fabricante": "CAOA CHERY",
+        "quantidade": 7002,
+        "market_share": 1.4
+      },
+      {
+        "modelo": "SONG PRO GS DM",
+        "fabricante": "BYD",
+        "quantidade": 6496,
+        "market_share": 1.3
+      },
+      {
+        "modelo": "BYD DOLPHIN GS 180EV",
+        "fabricante": "BYD",
+        "quantidade": 6405,
+        "market_share": 1.3
+      },
+      {
+        "modelo": "HAVAL H6 PHEV 19",
+        "fabricante": "GWM",
+        "quantidade": 5409,
+        "market_share": 1.1
+      },
+      {
+        "modelo": "FASTBACK IMPETUS HY",
+        "fabricante": "FIAT",
+        "quantidade": 5342,
+        "market_share": 1.1
+      },
+      {
+        "modelo": "SEAL AWD GS 590EV",
+        "fabricante": "BYD",
+        "quantidade": 4568,
+        "market_share": 0.9
+      },
+      {
+        "modelo": "DOLPHIN PLUS 310EV",
+        "fabricante": "BYD",
+        "quantidade": 4557,
+        "market_share": 0.9
+      },
+      {
+        "modelo": "GWM HAVAL H6 PREM HEV",
+        "fabricante": "GWM",
+        "quantidade": 4323,
+        "market_share": 0.9
+      },
+      {
+        "modelo": "ORA 03 SKIN BEV48",
+        "fabricante": "GWM",
+        "quantidade": 3950,
+        "market_share": 0.8
+      },
+      {
+        "modelo": "YUAN PLUS GL 310EV",
+        "fabricante": "BYD",
+        "quantidade": 3876,
+        "market_share": 0.8
+      },
+      {
+        "modelo": "PRO H",
+        "fabricante": "CAOA CHERY",
+        "quantidade": 3744,
+        "market_share": 0.8
+      },
+      {
+        "modelo": "XC60 T8 ULTIMATE",
+        "fabricante": "VOLVO",
+        "quantidade": 3442,
+        "market_share": 0.7
+      },
+      {
+        "modelo": "BYD YUAN PRO GS 290EV",
+        "fabricante": "BYD",
+        "quantidade": 3221,
+        "market_share": 0.7
+      },
+      {
+        "modelo": "RAV4H SXAWD CNT",
+        "fabricante": "TOYOTA",
+        "quantidade": 3219,
+        "market_share": 0.7
+      },
+      {
+        "modelo": "XRV HYBRID",
+        "fabricante": "TOYOTA",
+        "quantidade": 3213,
+        "market_share": 0.7
+      },
+      {
+        "modelo": "SONG PRO GL DM",
+        "fabricante": "BYD",
+        "quantidade": 3175,
+        "market_share": 0.7
+      },
+      {
+        "modelo": "ORA 03 GT BEV63",
+        "fabricante": "GWM",
+        "quantidade": 3148,
+        "market_share": 0.6
+      },
+      {
+        "modelo": "GWM HAVAL H6 PREM PHEV",
+        "fabricante": "GWM",
+        "quantidade": 2872,
+        "market_share": 0.6
+      },
+      {
+        "modelo": "PULSE IMPETUS HYB",
+        "fabricante": "FIAT",
+        "quantidade": 2755,
+        "market_share": 0.6
+      },
+      {
+        "modelo": "KING GS DM",
+        "fabricante": "BYD",
+        "quantidade": 2638,
+        "market_share": 0.5
+      },
+      {
+        "modelo": "GWM HAVAL H6 GT",
+        "fabricante": "GWM",
+        "quantidade": 2607,
+        "market_share": 0.5
+      },
+      {
+        "modelo": "TIGGO5X PRO H",
+        "fabricante": "CAOA CHERY",
+        "quantidade": 2508,
+        "market_share": 0.5
+      },
+      {
+        "modelo": "BYD DOLPHIN PLUS 310EV",
+        "fabricante": "BYD",
+        "quantidade": 2498,
+        "market_share": 0.5
+      },
+      {
+        "modelo": "CAOA CHERY TIGGO8 PHEV",
+        "fabricante": "CAOA CHERY",
+        "quantidade": 2411,
+        "market_share": 0.5
+      },
+      {
+        "modelo": "X5 XDRIVE50E MSP",
+        "fabricante": "BMW",
+        "quantidade": 2401,
+        "market_share": 0.5
+      },
+      {
+        "modelo": "KING GL DM",
+        "fabricante": "BYD",
+        "quantidade": 2300,
+        "market_share": 0.5
+      },
+      {
+        "modelo": "XC60 T8 PLUS",
+        "fabricante": "VOLVO",
+        "quantidade": 2250,
+        "market_share": 0.5
+      },
+      {
+        "modelo": "SPORTAGE TMHEV EXP",
+        "fabricante": "KIA",
+        "quantidade": 2175,
+        "market_share": 0.4
+      },
+      {
+        "modelo": "CCROSS XRV HYBRID",
+        "fabricante": "TOYOTA",
+        "quantidade": 2154,
+        "market_share": 0.4
+      },
+      {
+        "modelo": "CIVIC HYB TRNG",
+        "fabricante": "HONDA",
+        "quantidade": 2144,
+        "market_share": 0.4
+      },
+      {
+        "modelo": "AUDACE HYB",
+        "fabricante": "FIAT",
+        "quantidade": 2121,
+        "market_share": 0.4
+      }
+    ],
+    "top_states": [
+      {
+        "estado": "Sao Paulo",
+        "stations": 78,
+        "cities": 42,
+        "avg_power_kw": 94.12,
+        "fast_dc_rate": 71.79,
+        "attractiveness_score": 92.95
+      },
+      {
+        "estado": "Rio Grande do Sul",
+        "stations": 54,
+        "cities": 33,
+        "avg_power_kw": 46.9,
+        "fast_dc_rate": 55.56,
+        "attractiveness_score": 61.93
+      },
+      {
+        "estado": "Santa Catarina",
+        "stations": 35,
+        "cities": 23,
+        "avg_power_kw": 61.63,
+        "fast_dc_rate": 68.57,
+        "attractiveness_score": 54.92
+      },
+      {
+        "estado": "Parana",
+        "stations": 31,
+        "cities": 17,
+        "avg_power_kw": 62.08,
+        "fast_dc_rate": 74.19,
+        "attractiveness_score": 53.6
+      },
+      {
+        "estado": "Ceara",
+        "stations": 57,
+        "cities": 29,
+        "avg_power_kw": 36.3,
+        "fast_dc_rate": 15.79,
+        "attractiveness_score": 51.85
+      },
+      {
+        "estado": "Bahia",
+        "stations": 42,
+        "cities": 34,
+        "avg_power_kw": 37.05,
+        "fast_dc_rate": 38.1,
+        "attractiveness_score": 47.01
+      },
+      {
+        "estado": "Minas Gerais",
+        "stations": 25,
+        "cities": 19,
+        "avg_power_kw": 59.7,
+        "fast_dc_rate": 60.0,
+        "attractiveness_score": 45.31
+      },
+      {
+        "estado": "Alagoas",
+        "stations": 12,
+        "cities": 8,
+        "avg_power_kw": 69.92,
+        "fast_dc_rate": 75.0,
+        "attractiveness_score": 42.07
+      },
+      {
+        "estado": "Paraiba",
+        "stations": 17,
+        "cities": 7,
+        "avg_power_kw": 66.59,
+        "fast_dc_rate": 58.82,
+        "attractiveness_score": 40.84
+      },
+      {
+        "estado": "Sergipe",
+        "stations": 6,
+        "cities": 3,
+        "avg_power_kw": 68.33,
+        "fast_dc_rate": 83.33,
+        "attractiveness_score": 39.59
+      },
+      {
+        "estado": "Rio de Janeiro",
+        "stations": 34,
+        "cities": 15,
+        "avg_power_kw": 37.33,
+        "fast_dc_rate": 29.41,
+        "attractiveness_score": 39.26
+      },
+      {
+        "estado": "Rio Grande do Norte",
+        "stations": 24,
+        "cities": 10,
+        "avg_power_kw": 56.17,
+        "fast_dc_rate": 33.33,
+        "attractiveness_score": 37.19
+      },
+      {
+        "estado": "Maranhao",
+        "stations": 24,
+        "cities": 19,
+        "avg_power_kw": 53.79,
+        "fast_dc_rate": 25.0,
+        "attractiveness_score": 34.6
+      },
+      {
+        "estado": "Mato Grosso",
+        "stations": 2,
+        "cities": 1,
+        "avg_power_kw": 90.0,
+        "fast_dc_rate": 50.0,
+        "attractiveness_score": 33.04
+      },
+      {
+        "estado": "Pernambuco",
+        "stations": 16,
+        "cities": 11,
+        "avg_power_kw": 45.02,
+        "fast_dc_rate": 37.5,
+        "attractiveness_score": 30.23
+      },
+      {
+        "estado": "Goias",
+        "stations": 27,
+        "cities": 17,
+        "avg_power_kw": 30.29,
+        "fast_dc_rate": 18.52,
+        "attractiveness_score": 30.1
+      },
+      {
+        "estado": "Piaui",
+        "stations": 21,
+        "cities": 12,
+        "avg_power_kw": 39.13,
+        "fast_dc_rate": 23.81,
+        "attractiveness_score": 29.08
+      },
+      {
+        "estado": "Para",
+        "stations": 8,
+        "cities": 7,
+        "avg_power_kw": 43.75,
+        "fast_dc_rate": 37.5,
+        "attractiveness_score": 24.31
+      },
+      {
+        "estado": "Espirito Santo",
+        "stations": 12,
+        "cities": 7,
+        "avg_power_kw": 22.7,
+        "fast_dc_rate": 25.0,
+        "attractiveness_score": 19.54
+      },
+      {
+        "estado": "Tocantins",
+        "stations": 6,
+        "cities": 5,
+        "avg_power_kw": 43.33,
+        "fast_dc_rate": 16.67,
+        "attractiveness_score": 17.61
+      }
+    ]
+  },
+  "insights": [
+    "A base soma 485,039 unidades eletrificadas em circulacao, distribuida em 1008 modelos e 57 fabricantes.",
+    "BYD lidera com 33.96% de market share e 164,705 unidades.",
+    "A participacao conjunta dos 5 maiores fabricantes atinge 75.21%, sinalizando concentracao relevante de mercado.",
+    "As vendas anuais evoluiram de 117 para 126,087 unidades no periodo monitorado, com CAGR de 71.11% ao ano.",
+    "No recorte de infraestrutura, o Brasil tem 640 pontos na base global e Sao Paulo aparece como estado com melhor score composto."
+  ],
+  "recommendations": [
+    "Priorizar a expansao em Sao Paulo, combinando postos de recarga rapida com acordos comerciais locais.",
+    "Direcionar campanhas e parcerias para os fabricantes lideres, onde a demanda ja esta comprovada.",
+    "Planejar capacidade para picos de demanda nos meses historicamente mais fortes, reduzindo risco operacional.",
+    "Monitorar estados com alta quantidade de cidades e baixa densidade de estacoes como oportunidades de first-mover."
+  ]
+}

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pipeline de Analise de Veiculos Eletricos</title>
+    {{FAVICON_LINKS}}
+    <link rel="stylesheet" href="./styles.css" />
+    <script id="analysisData" type="application/json">{{EMBEDDED_ANALYSIS_JSON}}</script>
+    {{CHART_SCRIPT_TAG}}
+    <script type="module" src="./dashboard.js"></script>
+</head>
+<body>
+    <div class="bg-shape bg-shape--left" aria-hidden="true"></div>
+    <div class="bg-shape bg-shape--right" aria-hidden="true"></div>
+
+    <header class="hero">
+        <div class="hero__title">
+            <p class="eyebrow">Analise de Gestao Empresarial</p>
+            <h1>Relatorio Completo + Dashboard Interativo</h1>
+            <p class="subtitle">Pipeline automatica para consumo de dados, analise de mercado e recomendacoes de investimento em infraestrutura de recarga.</p>
+        </div>
+        <div class="hero__actions">
+            <a class="btn btn--primary" href="./dataset_consumido.zip" download>Download do Dataset Consumido</a>
+            <a class="btn btn--secondary" href="https://www.kaggle.com/datasets/nathanrocha/recarga-de-veculos-eltricos-brasil?resource=download" target="_blank" rel="noopener noreferrer">Kaggle: Download</a>
+            <a class="btn btn--ghost" href="https://www.kaggle.com/datasets/nathanrocha/recarga-de-veculos-eltricos-brasil" target="_blank" rel="noopener noreferrer">Abrir no Kaggle</a>
+        </div>
+    </header>
+
+    <main class="layout">
+        <section class="card card--summary">
+            <h2>Resumo Executivo</h2>
+            <p id="summaryText">Carregando resumo...</p>
+            <div class="meta-row">
+                <span id="datasetSource">Fonte: carregando...</span>
+                <span id="generatedAt">Gerado em: carregando...</span>
+            </div>
+        </section>
+
+        <section class="kpi-grid" aria-label="Indicadores principais">
+            <article class="kpi-card">
+                <h3>Unidades Monitoradas</h3>
+                <p id="kpiTotalUnits">-</p>
+            </article>
+            <article class="kpi-card">
+                <h3>Modelos Catalogados</h3>
+                <p id="kpiTotalModels">-</p>
+            </article>
+            <article class="kpi-card">
+                <h3>Fabricantes</h3>
+                <p id="kpiManufacturers">-</p>
+            </article>
+            <article class="kpi-card">
+                <h3>Lider de Mercado</h3>
+                <p id="kpiTopManufacturer">-</p>
+            </article>
+            <article class="kpi-card">
+                <h3>CAGR de Vendas</h3>
+                <p id="kpiCagr">-</p>
+            </article>
+            <article class="kpi-card">
+                <h3>Estado Prioritario</h3>
+                <p id="kpiRecommendedState">-</p>
+            </article>
+        </section>
+
+        <section class="card card--controls">
+            <h2>Controles Interativos</h2>
+            <div class="controls-grid">
+                <label class="control-item" for="manufacturerChartType">
+                    Visual de Market Share
+                    <select id="manufacturerChartType">
+                        <option value="doughnut">Rosca</option>
+                        <option value="bar">Barras</option>
+                    </select>
+                </label>
+
+                <label class="control-item" for="modelLimit">
+                    Top modelos na tabela
+                    <input id="modelLimit" type="range" min="5" max="30" step="1" value="12" />
+                    <small id="modelLimitValue">12</small>
+                </label>
+
+                <label class="control-item" for="stateFastFilter">
+                    Filtro minimo de recarga rapida por estado
+                    <input id="stateFastFilter" type="range" min="0" max="100" step="5" value="0" />
+                    <small id="stateFastFilterValue">0%</small>
+                </label>
+            </div>
+        </section>
+
+        <section class="chart-grid">
+            <article class="card chart-card">
+                <h2>Market Share por Fabricante</h2>
+                <canvas id="manufacturerChart"></canvas>
+            </article>
+            <article class="card chart-card">
+                <h2>Vendas Anuais</h2>
+                <canvas id="yearlySalesChart"></canvas>
+            </article>
+            <article class="card chart-card">
+                <h2>Sazonalidade Mensal</h2>
+                <canvas id="monthlySalesChart"></canvas>
+            </article>
+            <article class="card chart-card">
+                <h2>Infraestrutura por Estado (BR)</h2>
+                <canvas id="stateStationsChart"></canvas>
+            </article>
+        </section>
+
+        <section class="table-grid">
+            <article class="card table-card">
+                <h2>Top Modelos</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Modelo</th>
+                                <th>Fabricante</th>
+                                <th>Quantidade</th>
+                                <th>Market Share (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topModelsTable"></tbody>
+                    </table>
+                </div>
+            </article>
+            <article class="card table-card">
+                <h2>Top Estados (Score Composto)</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Estado</th>
+                                <th>Estacoes</th>
+                                <th>Cidades</th>
+                                <th>Fast DC (%)</th>
+                                <th>Potencia Media (kW)</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topStatesTable"></tbody>
+                    </table>
+                </div>
+            </article>
+        </section>
+
+        <section class="list-grid">
+            <article class="card">
+                <h2>Insights-Chave</h2>
+                <ul id="insightsList"></ul>
+            </article>
+            <article class="card">
+                <h2>Recomendacoes</h2>
+                <ul id="recommendationsList"></ul>
+            </article>
+        </section>
+    </main>
+</body>
+</html>

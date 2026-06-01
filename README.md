@@ -32,6 +32,12 @@ Descobrir a regiao mais atrativa para investir em novos postos de carregamento d
 ### Publico-alvo
 Direcao financeira da empresa.
 
+## Links oficiais
+
+- Dashboard publicado (Netlify): https://analisededadosvapt.netlify.app
+- Dataset no Kaggle (download): https://www.kaggle.com/datasets/nathanrocha/recarga-de-veculos-eltricos-brasil?resource=download
+- Repositorio no GitHub: https://github.com/DaniBoy083/analise-de-gest-o-empresarial
+
 ## Visao geral da solucao
 
 Ao executar a pipeline, o projeto:
@@ -187,6 +193,9 @@ Workflow configurado em `.github/workflows/ci.yml` com os passos:
 ## Hospedagem na Netlify (configurada)
 
 O projeto ja esta preparado para deploy automatico na Netlify com o arquivo `netlify.toml`:
+
+- URL publicada do projeto:
+	- https://analisededadosvapt.netlify.app
 
 - Build command:
 	- `python -m pip install --upgrade pip && python -m pip install -r requirements.txt && python main.py --output-dir docs/site`

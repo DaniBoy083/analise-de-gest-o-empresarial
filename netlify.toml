@@ -1,5 +1,5 @@
 [build]
-  command = "python -m pip install --upgrade pip && python -m pip install -r requirements.txt && npx esbuild web_src/dashboard.ts --bundle --platform=browser --outfile=docs/site/dashboard.js --sourcemap --minify && python main.py --output-dir docs/site"
+  command = "python -m pip install --upgrade pip && python -m pip install -r requirements.txt && npm ci && npm run build:dashboard && python main.py --output-dir docs/site"
   publish = "docs/site"
 
 [build.environment]

@@ -26,8 +26,10 @@ def render_index_html(
     include_chart_script: bool,
 ) -> str:
     favicon_links = _render_favicon_links(favicon_href, favicon_type)
+    # FIX: chart.js deve ser carregado ANTES do dashboard.js e sem `defer`
+    # para garantir que `Chart` esteja no escopo global quando o módulo executar.
     chart_script_tag = (
-        '<script src="./chart.umd.min.js" defer></script>' if include_chart_script else ""
+        '<script src="./chart.umd.min.js"></script>' if include_chart_script else ""
     )
 
     rendered = template_html.replace("{{FAVICON_LINKS}}", favicon_links)
@@ -54,31 +56,30 @@ def write_site_assets(
     template_path = source_dir / "index.template.html"
     css_path = source_dir / "styles.css"
     dashboard_ts_path = source_dir / "dashboard.ts"
-    dashboard_js_path = source_dir / "dashboard.js"
     chart_path = source_dir / "chart.umd.min.js"
 
     if not template_path.exists():
         raise FileNotFoundError(f"Template HTML nao encontrado: {template_path}")
     if not css_path.exists():
         raise FileNotFoundError(f"CSS de origem nao encontrado: {css_path}")
-    if not dashboard_ts_path.exists() and not dashboard_js_path.exists():
-        raise FileNotFoundError(
-            f"Dashboard source nao encontrado: {dashboard_ts_path} ou {dashboard_js_path}"
-        )
+
+    # FIX: verificar o dashboard.js JA COMPILADO pelo esbuild em output_dir.
+    # Nunca sobrescrever com o fonte .ts ou com uma cópia de web_src/dashboard.js.
+    compiled_js_path = output_dir / "dashboard.js"
+    if not compiled_js_path.exists():
+        # Fallback: aceitar um dashboard.js pre-compilado em web_src (commitado no repo)
+        fallback_js = source_dir / "dashboard.js"
+        if fallback_js.exists():
+            shutil.copy2(fallback_js, compiled_js_path)
+            print("Aviso: usando dashboard.js pre-compilado de web_src como fallback.")
+        else:
+            raise FileNotFoundError(
+                "Nenhum dashboard.js compilado encontrado. Execute 'npm run build:dashboard' "
+                "ou commite web_src/dashboard.js no repositorio."
+            )
 
     template_html = template_path.read_text(encoding="utf-8")
     styles_css = css_path.read_text(encoding="utf-8")
-
-    dashboard_ts = dashboard_ts_path.read_text(encoding="utf-8") if dashboard_ts_path.exists() else ""
-    if (output_dir / "dashboard.js").exists():
-        dashboard_js = (output_dir / "dashboard.js").read_text(encoding="utf-8")
-    elif dashboard_js_path.exists():
-        dashboard_js = dashboard_js_path.read_text(encoding="utf-8")
-    else:
-        raise FileNotFoundError(
-            "Nenhum dashboard.js compilado encontrado. Execute 'npm run build:dashboard' "
-            "ou garanta que dashboard.js exista em web_src."
-        )
 
     embedded_json = json.dumps(payload, ensure_ascii=False, indent=2).replace("</", "<\\/")
     include_chart_script = chart_path.exists()
@@ -93,11 +94,13 @@ def write_site_assets(
 
     (output_dir / "index.html").write_text(index_html, encoding="utf-8")
     (output_dir / "styles.css").write_text(styles_css, encoding="utf-8")
-    # Sempre preservar o .ts fonte quando houver, e garantir um .js funcional
-    if dashboard_ts_path.exists():
-        (output_dir / "dashboard.ts").write_text(dashboard_ts, encoding="utf-8")
 
-    (output_dir / "dashboard.js").write_text(dashboard_js, encoding="utf-8")
+    # Preservar o .ts fonte para auditoria, mas NAO reescrever o .js compilado
+    if dashboard_ts_path.exists():
+        (output_dir / "dashboard.ts").write_text(
+            dashboard_ts_path.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+
     (output_dir / "analysis.json").write_text(
         json.dumps(payload, indent=2, ensure_ascii=False),
         encoding="utf-8",

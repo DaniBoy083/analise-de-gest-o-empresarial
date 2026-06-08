@@ -260,7 +260,24 @@ table,
 	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 	gap: 0.84rem;
 }
+.control-actions {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 0.75rem;
+	margin-top: 1rem;
+}
 
+.state-detail {
+	display: grid;
+	gap: 0.6rem;
+	padding: 1rem 0 0;
+	color: var(--text-soft);
+	font-size: 0.95rem;
+}
+
+.state-detail strong {
+	color: var(--text-main);
+}
 .control-item {
 	display: grid;
 	gap: 0.45rem;

@@ -72,20 +72,26 @@
                     <select id="manufacturerChartType">
                         <option value="doughnut">Rosca</option>
                         <option value="bar">Barras</option>
+                        <option value="line">Linha</option>
                     </select>
                 </label>
 
                 <label class="control-item" for="modelLimit">
                     Top modelos na tabela
-                    <input id="modelLimit" type="range" min="5" max="30" step="1" value="12" />
+                    <input id="modelLimit" type="range" min="1" max="50" step="1" value="12" />
                     <small id="modelLimitValue">12</small>
                 </label>
 
                 <label class="control-item" for="stateFastFilter">
                     Filtro minimo de recarga rapida por estado
-                    <input id="stateFastFilter" type="range" min="0" max="100" step="5" value="0" />
+                    <input id="stateFastFilter" type="range" min="0" max="100" step="1" value="0" />
                     <small id="stateFastFilterValue">0%</small>
                 </label>
+            </div>
+            <div class="controls-grid control-actions">
+                <button id="exportModelsCsv" class="btn btn--secondary">Exportar Top Modelos CSV</button>
+                <button id="exportStatesJson" class="btn btn--secondary">Exportar Estados JSON</button>
+                <button id="clearStateSelection" class="btn btn--ghost">Limpar selecao de Estado</button>
             </div>
         </section>
 
@@ -106,6 +112,13 @@
                 <h2>Infraestrutura por Estado (BR)</h2>
                 <canvas id="stateStationsChart"></canvas>
             </article>
+        </section>
+
+        <section class="card card--state-detail">
+            <h2>Detalhes do Estado Selecionado</h2>
+            <div id="stateDetailPanel" class="state-detail">
+                <p>Selecione uma barra no gráfico de estados para ver métricas detalhadas.</p>
+            </div>
         </section>
 
         <section class="table-grid">

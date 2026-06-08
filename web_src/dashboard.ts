@@ -1,6 +1,9 @@
 const appState = {
 	data: null,
 	charts: {},
+	// evita dupla inicializacao / múltiplos listeners quando o script é re-executado
+	controlsBound: false,
+	initialized: false,
 };
 
 const integerFormatter = new Intl.NumberFormat('pt-BR');
@@ -195,6 +198,13 @@ function renderManufacturerChart() {
 				legend: {
 					position: chartType === 'doughnut' ? 'bottom' : 'top',
 				},
+				tooltip: {
+					callbacks: {
+						label(context) {
+							return `Unidades: ${integerFormatter.format(context.parsed)}`;
+						},
+					},
+				},
 			},
 			scales: chartType === 'bar'
 				? {
@@ -228,6 +238,18 @@ function renderYearlyChart() {
 		options: {
 			responsive: true,
 			maintainAspectRatio: false,
+			plugins: {
+				tooltip: {
+					callbacks: {
+						title(context) {
+							return `Ano ${context[0].label}`;
+						},
+						label(context) {
+							return `Unidades: ${integerFormatter.format(context.parsed.y)}`;
+						},
+					},
+				},
+			},
 			scales: {
 				y: {
 					beginAtZero: true,
@@ -289,6 +311,30 @@ function renderStateChart() {
 		options: {
 			responsive: true,
 			maintainAspectRatio: false,
+			onClick(event, elements, chart) {
+				if (!elements.length) {
+					return;
+				}
+
+				const element = elements[0];
+				const stateLabel = chart.data.labels?.[element.index];
+				if (stateLabel) {
+					appState.selectedState = String(stateLabel);
+					renderStateDetail();
+				}
+			},
+			plugins: {
+				tooltip: {
+					callbacks: {
+						title(context) {
+							return String(context[0].label);
+						},
+						label(context) {
+							return `${context.dataset.label}: ${integerFormatter.format(context.parsed.y)}`;
+						},
+					},
+				},
+			},
 			scales: {
 				y: {
 					beginAtZero: true,
@@ -307,6 +353,62 @@ function renderStateChart() {
 	});
 }
 
+function downloadFile(filename, content, mimeType) {
+	const blob = new Blob([content], { type: mimeType });
+	const url = URL.createObjectURL(blob);
+	const link = document.createElement('a');
+	link.href = url;
+	link.download = filename;
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
+	URL.revokeObjectURL(url);
+}
+
+function exportModelsCsv() {
+	const header = ['Modelo', 'Fabricante', 'Quantidade', 'Market Share (%)'];
+	const rows = appState.data.tables.top_models.slice(0, Number(elementById('modelLimit')?.value || 12));
+	const csv = [header.join(';'), ...rows.map((row) => [row.modelo, row.fabricante, row.quantidade, row.market_share].join(';'))].join('\n');
+	downloadFile('top_modelos.csv', csv, 'text/csv;charset=utf-8;');
+}
+
+function exportStatesJson() {
+	const rows = filteredStates();
+	downloadFile('top_estados.json', JSON.stringify(rows, null, 2), 'application/json');
+}
+
+function clearStateSelection() {
+	appState.selectedState = null;
+	renderStateDetail();
+}
+
+function renderStateDetail() {
+	const panel = elementById('stateDetailPanel');
+	if (!panel) {
+		return;
+	}
+
+	if (!appState.selectedState) {
+		panel.innerHTML = '<p>Selecione uma barra no gráfico de estados para ver métricas detalhadas.</p>';
+		return;
+	}
+
+	const row = appState.data.tables.top_states.find((item) => item.estado === appState.selectedState);
+	if (!row) {
+		panel.innerHTML = `<p>O estado selecionado nao esta mais no filtro atual: ${escapeHtml(appState.selectedState)}.</p>`;
+		return;
+	}
+
+	panel.innerHTML = `
+		<p><strong>Estado:</strong> ${escapeHtml(row.estado)}</p>
+		<p><strong>Estacoes:</strong> ${integerFormatter.format(row.stations)}</p>
+		<p><strong>Cidades:</strong> ${integerFormatter.format(row.cities)}</p>
+		<p><strong>Fast DC:</strong> ${decimalFormatter.format(row.fast_dc_rate)}%</p>
+		<p><strong>Potencia Media:</strong> ${decimalFormatter.format(row.avg_power_kw)} kW</p>
+		<p><strong>Score de Atratividade:</strong> ${decimalFormatter.format(row.attractiveness_score)}</p>
+	`;
+}
+
 function renderContentOnly() {
 	renderSummary();
 	renderKpis();
@@ -320,6 +422,7 @@ function renderChartsOnly() {
 	renderYearlyChart();
 	renderMonthlyChart();
 	renderStateChart();
+	renderStateDetail();
 }
 
 function renderAll() {
@@ -354,7 +457,12 @@ function scheduleChartHydration(maxAttempts = 24) {
 }
 
 function bindControls() {
-	elementById('manufacturerChartType')?.addEventListener('change', () => {
+	if (appState.controlsBound) {
+		return;
+	}
+
+	const manufacturerSelect = elementById('manufacturerChartType');
+	manufacturerSelect?.addEventListener('change', () => {
 		if (setChartDefaults()) {
 			renderManufacturerChart();
 			return;
@@ -363,16 +471,34 @@ function bindControls() {
 		scheduleChartHydration(12);
 	});
 
-	elementById('modelLimit')?.addEventListener('input', () => {
+	// Atualiza a tabela quando o slider de limite de modelos muda e atualiza o label
+	const modelLimitInput = elementById('modelLimit') as HTMLInputElement | null;
+	modelLimitInput?.addEventListener('input', () => {
 		renderTopModels();
+		const value = Number(modelLimitInput.value || 0);
+		safeText('modelLimitValue', String(value));
 	});
 
-	elementById('stateFastFilter')?.addEventListener('input', () => {
+	const stateFilterInput = elementById('stateFastFilter') as HTMLInputElement | null;
+	stateFilterInput?.addEventListener('input', () => {
 		renderTopStates();
 		if (setChartDefaults()) {
 			renderStateChart();
 		}
+		const val = Number(stateFilterInput.value || 0);
+		safeText('stateFastFilterValue', `${val}%`);
 	});
+
+	elementById('exportModelsCsv')?.addEventListener('click', exportModelsCsv);
+	elementById('exportStatesJson')?.addEventListener('click', exportStatesJson);
+	elementById('clearStateSelection')?.addEventListener('click', () => {
+		clearStateSelection();
+		if (setChartDefaults()) {
+			renderStateChart();
+		}
+	});
+
+	appState.controlsBound = true;
 }
 
 function showFatalError(error) {
@@ -384,6 +510,10 @@ function showFatalError(error) {
 
 async function bootstrap() {
 	try {
+		// evitar re-run se já inicializado (por ex. hot-reload ou execução repetida)
+		if (appState.initialized) {
+			return;
+		}
 		const embeddedNode = elementById('analysisData');
 		if (embeddedNode?.textContent) {
 			try {
@@ -403,8 +533,51 @@ async function bootstrap() {
 		}
 
 		bindControls();
+
+		// Ajustes dinâmicos dos controles: definir limites e rótulos em PT-BR
+		// 1) manufacturerChartType: opções legíveis
+		const manufacturerSelect = elementById('manufacturerChartType') as HTMLSelectElement | null;
+		if (manufacturerSelect) {
+			manufacturerSelect.innerHTML = `
+				<option value="doughnut">Rosca</option>
+				<option value="bar">Barra</option>
+				<option value="line">Linha</option>
+			`;
+		}
+
+		// 2) modelLimit: ajustar max para quantidade de modelos disponíveis
+		const modelLimitInput = elementById('modelLimit') as HTMLInputElement | null;
+		const modelLimitValueNode = elementById('modelLimitValue');
+		const availableModels = appState.data?.tables?.top_models?.length || 0;
+		if (modelLimitInput) {
+			modelLimitInput.min = '1';
+			modelLimitInput.max = String(Math.max(1, Math.min(50, availableModels)));
+			if (!modelLimitInput.value) {
+				modelLimitInput.value = String(Math.min(12, availableModels || 12));
+			}
+		}
+		if (modelLimitValueNode) {
+			modelLimitValueNode.textContent = String(modelLimitInput?.value || '0');
+		}
+
+		// 3) stateFastFilter: exibir em porcentagem e definir range 0-100
+		const stateFilterInput = elementById('stateFastFilter') as HTMLInputElement | null;
+		const stateFilterValueNode = elementById('stateFastFilterValue');
+		if (stateFilterInput) {
+			stateFilterInput.min = '0';
+			stateFilterInput.max = '100';
+			stateFilterInput.step = '1';
+			if (!stateFilterInput.value) {
+				stateFilterInput.value = '0';
+			}
+		}
+		if (stateFilterValueNode) {
+			stateFilterValueNode.textContent = `${stateFilterInput?.value || '0'}%`;
+		}
+
 		renderContentOnly();
 		scheduleChartHydration();
+		appState.initialized = true;
 	} catch (error) {
 		showFatalError(error instanceof Error ? error.message : String(error));
 	}

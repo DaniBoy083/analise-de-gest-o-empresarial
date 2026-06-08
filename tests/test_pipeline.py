@@ -22,6 +22,7 @@ class TestPipeline(unittest.TestCase):
                 patch("ev_pipeline.pipeline.resolve_sources", return_value=fake_sources) as resolve_sources_mock,
                 patch("ev_pipeline.pipeline.build_analysis_payload", return_value={"meta": {}}) as build_payload_mock,
                 patch("ev_pipeline.pipeline.build_dataset_bundle") as build_bundle_mock,
+                patch("ev_pipeline.pipeline.build_frontend_assets", return_value=False) as frontend_build_mock,
                 patch("ev_pipeline.pipeline.prepare_favicon_asset", return_value=("./favicon.png", "image/png")) as favicon_mock,
                 patch("ev_pipeline.pipeline.write_site_assets") as write_site_mock,
             ):

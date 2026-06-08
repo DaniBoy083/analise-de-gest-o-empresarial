@@ -32,6 +32,7 @@ class TestSiteBuilder(unittest.TestCase):
             )
             (web_src / "styles.css").write_text("body{}", encoding="utf-8")
             (web_src / "dashboard.ts").write_text("console.log('ok');", encoding="utf-8")
+            (web_src / "dashboard.js").write_text("console.log('compiled');", encoding="utf-8")
             (web_src / "chart.umd.min.js").write_text("/* chart */", encoding="utf-8")
 
             output = root / "docs" / "site"

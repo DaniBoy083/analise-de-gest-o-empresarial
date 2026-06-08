@@ -8,6 +8,7 @@ import zipfile
 from pathlib import Path
 
 import kagglehub
+import requests
 
 from .config import DATASET_SLUG, FAVICON_EXTENSIONS
 from .models import DatasetSources
@@ -16,7 +17,22 @@ from .models import DatasetSources
 def try_download_dataset() -> Path | None:
     """Baixa a versao mais recente do dataset via KaggleHub."""
     try:
-        downloaded_path = Path(kagglehub.dataset_download(DATASET_SLUG))
+        result = kagglehub.dataset_download(DATASET_SLUG)
+        downloaded_path = Path(result)
+
+        # Alguns clientes retornam um arquivo zip. Nesse caso extraimos para
+        # um diretório ao lado do zip e retornamos o path do diretório extraido
+        # para que o restante da pipeline consiga localizar os CSVs.
+        if downloaded_path.exists() and zipfile.is_zipfile(downloaded_path):
+            extract_dir = downloaded_path.with_suffix("")
+            if not extract_dir.exists():
+                extract_dir.mkdir(parents=True, exist_ok=True)
+                with zipfile.ZipFile(downloaded_path, "r") as archive:
+                    archive.extractall(extract_dir)
+
+            print(f"Dataset baixado (zip) em: {downloaded_path} -> extraido em: {extract_dir}")
+            return extract_dir
+
         print(f"Dataset baixado/atualizado em: {downloaded_path}")
         return downloaded_path
     except Exception as exc:  # noqa: BLE001 - log de fallback amigavel
@@ -24,6 +40,50 @@ def try_download_dataset() -> Path | None:
             "Aviso: nao foi possivel baixar do KaggleHub agora. "
             f"Usando arquivos locais. Detalhes: {exc}"
         )
+        return None
+
+
+def try_download_from_url(url: str) -> Path | None:
+    """Tenta baixar um arquivo (zip ou arquivos isolados) a partir de uma URL.
+
+    Retorna o Path para o arquivo baixado ou para o diretorio extraido quando um
+    zip for detectado. Em caso de falha retorna None.
+    """
+    try:
+        resp = requests.get(url, stream=True, timeout=30)
+        resp.raise_for_status()
+
+        cache_dir = Path.home() / ".cache" / "ev_pipeline" / "external"
+        cache_dir.mkdir(parents=True, exist_ok=True)
+
+        # Tentar extrair nome do arquivo do header ou da URL
+        filename = None
+        cd = resp.headers.get("content-disposition")
+        if cd and "filename=" in cd:
+            filename = cd.split("filename=")[-1].strip('"\' ')
+        if not filename:
+            filename = url.split("/")[-1] or "downloaded_resource"
+
+        target = cache_dir / filename
+        with open(target, "wb") as fh:
+            for chunk in resp.iter_content(chunk_size=8192):
+                if chunk:
+                    fh.write(chunk)
+
+        if zipfile.is_zipfile(target):
+            extract_dir = target.with_suffix("")
+            if not extract_dir.exists():
+                extract_dir.mkdir(parents=True, exist_ok=True)
+                with zipfile.ZipFile(target, "r") as archive:
+                    archive.extractall(extract_dir)
+
+            print(f"Arquivo baixado via URL e extraido em: {extract_dir}")
+            return extract_dir
+
+        print(f"Arquivo baixado via URL em: {target}")
+        return target
+    except Exception as exc:  # noqa: BLE001
+        print(f"Aviso: falha ao baixar de URL {url}: {exc}")
         return None
 
 

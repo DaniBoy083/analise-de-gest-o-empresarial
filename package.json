@@ -1,0 +1,11 @@
+{
+  "name": "analise-de-gestao-empresarial",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:dashboard": "esbuild web_src/dashboard.ts --bundle --platform=browser --outfile=docs/site/dashboard.js --sourcemap --minify"
+  },
+  "devDependencies": {
+    "esbuild": "^0.19.4"
+  }
+}

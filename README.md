@@ -83,7 +83,9 @@ Ao executar a pipeline, o projeto:
 	- market share por fabricante;
 	- vendas anuais e variacao YoY;
 	- distribuicao mensal de vendas;
-	- ranking de estados por score de atratividade.
+	- ranking de estados por score de atratividade;
+	- drill-down interativo por estado;
+	- exportacao de tabelas (CSV/JSON) diretamente do dashboard.
 - Itens de entrega:
 	- relatorio web responsivo com identidade visual preto/verde;
 	- download do dataset consumido (`dataset_consumido.zip`);
@@ -96,7 +98,8 @@ Ao executar a pipeline, o projeto:
 - pandas
 - kagglehub
 - kagglesdk (versao fixada para compatibilidade)
-- HTML/CSS/TypeScript (arquivo JS gerado para execucao direta)
+- HTML/CSS/TypeScript com build local via esbuild
+- Node.js / npm (para compilar `web_src/dashboard.ts` em `dashboard.js`)
 - Chart.js local (sem dependencia de CDN em runtime)
 - unittest (testes automatizados)
 - GitHub Actions (CI)
@@ -111,7 +114,8 @@ A arquitetura foi separada por responsabilidade para reduzir acoplamento:
 - `ev_pipeline/data_sources.py`: acesso a dados e assets (download, resolucao de arquivos, favicon, bundle zip).
 - `ev_pipeline/analysis.py`: transformacoes e metricas de negocio.
 - `ev_pipeline/states.py`: normalizacao de estados.
-- `ev_pipeline/site_builder.py`: geracao de artefatos web.
+- `ev_pipeline/frontend_builder.py`: build do dashboard TypeScript usando esbuild.
+- `ev_pipeline/site_builder.py`: geracao de artefatos web sem executar build externo.
 - `web_src/`: fonte dos assets web (template, estilo, dashboard e Chart.js local).
 - `tests/`: suite de testes unitarios por camada.
 
@@ -153,6 +157,7 @@ analise-de-gestao-empresarial/
 ## Requisitos
 
 - Python 3.12+
+- Node.js e npm para compilar o dashboard TypeScript
 - Ambiente com acesso a internet para download inicial de dependencias
 
 ## Instalacao (Windows PowerShell)
@@ -162,12 +167,31 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
+npm install
 ```
 
 ## Execucao da pipeline
 
+O pipeline gera todos os artefatos em `docs/site/`. Ele agora separa claramente a etapa de build do frontend da etapa de escrita dos artefatos estáticos e tenta compilar `web_src/dashboard.ts` automaticamente para `docs/site/dashboard.js` quando o `esbuild` estiver disponível.
+
 ```powershell
 .\.venv\Scripts\python.exe main.py
+```
+
+### Opcional: usar URL externa de dados
+
+Se voce quiser apontar para uma URL de dados externa (ZIP ou arquivos CSV), use:
+
+```powershell
+.\.venv\Scripts\python.exe main.py --data-url "https://exemplo.com/dados.zip"
+```
+
+### Compilacao manual do dashboard
+
+Se desejar compilar manualmente o TypeScript antes da execucao do pipeline:
+
+```powershell
+npm run build:dashboard
 ```
 
 Opcional (diretorio customizado de saida):
@@ -198,7 +222,7 @@ O projeto ja esta preparado para deploy automatico na Netlify com o arquivo `net
 	- https://analisededadosvapt.netlify.app
 
 - Build command:
-	- `python -m pip install --upgrade pip && python -m pip install -r requirements.txt && python main.py --output-dir docs/site`
+	- `python -m pip install --upgrade pip && python -m pip install -r requirements.txt && npm install && npm run build:dashboard && python main.py --output-dir docs/site`
 - Publish directory:
 	- `docs/site`
 - Versao de Python no build:

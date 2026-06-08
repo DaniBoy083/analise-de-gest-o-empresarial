@@ -54,18 +54,31 @@ def write_site_assets(
     template_path = source_dir / "index.template.html"
     css_path = source_dir / "styles.css"
     dashboard_ts_path = source_dir / "dashboard.ts"
+    dashboard_js_path = source_dir / "dashboard.js"
     chart_path = source_dir / "chart.umd.min.js"
 
     if not template_path.exists():
         raise FileNotFoundError(f"Template HTML nao encontrado: {template_path}")
     if not css_path.exists():
         raise FileNotFoundError(f"CSS de origem nao encontrado: {css_path}")
-    if not dashboard_ts_path.exists():
-        raise FileNotFoundError(f"Dashboard TS nao encontrado: {dashboard_ts_path}")
+    if not dashboard_ts_path.exists() and not dashboard_js_path.exists():
+        raise FileNotFoundError(
+            f"Dashboard source nao encontrado: {dashboard_ts_path} ou {dashboard_js_path}"
+        )
 
     template_html = template_path.read_text(encoding="utf-8")
     styles_css = css_path.read_text(encoding="utf-8")
-    dashboard_ts = dashboard_ts_path.read_text(encoding="utf-8")
+
+    dashboard_ts = dashboard_ts_path.read_text(encoding="utf-8") if dashboard_ts_path.exists() else ""
+    if (output_dir / "dashboard.js").exists():
+        dashboard_js = (output_dir / "dashboard.js").read_text(encoding="utf-8")
+    elif dashboard_js_path.exists():
+        dashboard_js = dashboard_js_path.read_text(encoding="utf-8")
+    else:
+        raise FileNotFoundError(
+            "Nenhum dashboard.js compilado encontrado. Execute 'npm run build:dashboard' "
+            "ou garanta que dashboard.js exista em web_src."
+        )
 
     embedded_json = json.dumps(payload, ensure_ascii=False, indent=2).replace("</", "<\\/")
     include_chart_script = chart_path.exists()
@@ -80,8 +93,11 @@ def write_site_assets(
 
     (output_dir / "index.html").write_text(index_html, encoding="utf-8")
     (output_dir / "styles.css").write_text(styles_css, encoding="utf-8")
-    (output_dir / "dashboard.ts").write_text(dashboard_ts, encoding="utf-8")
-    (output_dir / "dashboard.js").write_text(dashboard_ts, encoding="utf-8")
+    # Sempre preservar o .ts fonte quando houver, e garantir um .js funcional
+    if dashboard_ts_path.exists():
+        (output_dir / "dashboard.ts").write_text(dashboard_ts, encoding="utf-8")
+
+    (output_dir / "dashboard.js").write_text(dashboard_js, encoding="utf-8")
     (output_dir / "analysis.json").write_text(
         json.dumps(payload, indent=2, ensure_ascii=False),
         encoding="utf-8",

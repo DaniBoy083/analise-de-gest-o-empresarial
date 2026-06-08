@@ -4,6 +4,8 @@ const appState = {
 	// evita dupla inicializacao / múltiplos listeners quando o script é re-executado
 	controlsBound: false,
 	initialized: false,
+	// marca que os charts já foram hidratados uma vez
+	chartsHydrated: false,
 };
 
 const integerFormatter = new Intl.NumberFormat('pt-BR');
@@ -418,11 +420,21 @@ function renderContentOnly() {
 }
 
 function renderChartsOnly() {
+	// se já hidratamos os charts e os dados nao mudaram, evitar re-render completo
+	if (appState.chartsHydrated) {
+		// atualizar apenas detalhes e estados que dependem de filtros
+		renderManufacturerChart();
+		renderStateDetail();
+		return;
+	}
+
 	renderManufacturerChart();
 	renderYearlyChart();
 	renderMonthlyChart();
 	renderStateChart();
 	renderStateDetail();
+
+	appState.chartsHydrated = true;
 }
 
 function renderAll() {
@@ -468,6 +480,12 @@ function bindControls() {
 			return;
 		}
 
+		// se ja hidratamos os charts anteriormente, só renderiza o manufacturer
+		if (appState.chartsHydrated) {
+			renderManufacturerChart();
+			return;
+		}
+
 		scheduleChartHydration(12);
 	});
 
@@ -483,7 +501,11 @@ function bindControls() {
 	stateFilterInput?.addEventListener('input', () => {
 		renderTopStates();
 		if (setChartDefaults()) {
-			renderStateChart();
+			if (appState.chartsHydrated) {
+				renderStateChart();
+			} else {
+				scheduleChartHydration(8);
+			}
 		}
 		const val = Number(stateFilterInput.value || 0);
 		safeText('stateFastFilterValue', `${val}%`);
@@ -494,7 +516,11 @@ function bindControls() {
 	elementById('clearStateSelection')?.addEventListener('click', () => {
 		clearStateSelection();
 		if (setChartDefaults()) {
-			renderStateChart();
+			if (appState.chartsHydrated) {
+				renderStateChart();
+			} else {
+				scheduleChartHydration(8);
+			}
 		}
 	});
 

@@ -1,6 +1,11 @@
 const appState = {
 	data: null,
 	charts: {},
+	// evita dupla inicializacao / múltiplos listeners quando o script é re-executado
+	controlsBound: false,
+	initialized: false,
+	// marca que os charts já foram hidratados uma vez
+	chartsHydrated: false,
 };
 
 const integerFormatter = new Intl.NumberFormat('pt-BR');
@@ -415,11 +420,21 @@ function renderContentOnly() {
 }
 
 function renderChartsOnly() {
+	// se já hidratamos os charts e os dados nao mudaram, evitar re-render completo
+	if (appState.chartsHydrated) {
+		// atualizar apenas detalhes e estados que dependem de filtros
+		renderManufacturerChart();
+		renderStateDetail();
+		return;
+	}
+
 	renderManufacturerChart();
 	renderYearlyChart();
 	renderMonthlyChart();
 	renderStateChart();
 	renderStateDetail();
+
+	appState.chartsHydrated = true;
 }
 
 function renderAll() {
@@ -428,21 +443,30 @@ function renderAll() {
 }
 
 function scheduleChartHydration(maxAttempts = 24) {
+	const requiredChartKeys = ['manufacturerChart', 'yearlySalesChart', 'monthlySalesChart', 'stateStationsChart'];
+
 	const attempt = (remaining) => {
 		if (!appState.data) {
 			return;
 		}
 
-		if (setChartDefaults()) {
-			renderChartsOnly();
+		if (!setChartDefaults()) {
+			if (remaining <= 0) {
+				return;
+			}
+			window.setTimeout(() => attempt(remaining - 1), 250);
 			return;
 		}
 
-		if (remaining <= 0) {
+		// Tenta renderizar os charts e verifica se as instâncias foram criadas.
+		renderChartsOnly();
+
+		const allCreated = requiredChartKeys.every((k) => !!appState.charts[k]);
+		if (!allCreated && remaining > 0) {
+			// aguarda um pouco e tenta novamente
+			window.setTimeout(() => attempt(remaining - 1), 250);
 			return;
 		}
-
-		window.setTimeout(() => attempt(remaining - 1), 250);
 	};
 
 	if ('requestIdleCallback' in window) {
@@ -454,9 +478,19 @@ function scheduleChartHydration(maxAttempts = 24) {
 }
 
 function bindControls() {
+	if (appState.controlsBound) {
+		return;
+	}
+
 	const manufacturerSelect = elementById('manufacturerChartType');
 	manufacturerSelect?.addEventListener('change', () => {
 		if (setChartDefaults()) {
+			renderManufacturerChart();
+			return;
+		}
+
+		// se ja hidratamos os charts anteriormente, só renderiza o manufacturer
+		if (appState.chartsHydrated) {
 			renderManufacturerChart();
 			return;
 		}
@@ -465,20 +499,24 @@ function bindControls() {
 	});
 
 	// Atualiza a tabela quando o slider de limite de modelos muda e atualiza o label
-	const modelLimitInput = elementById('modelLimit') as HTMLInputElement | null;
+	const modelLimitInput = elementById('modelLimit');
 	modelLimitInput?.addEventListener('input', () => {
 		renderTopModels();
-		const value = Number(modelLimitInput.value || 0);
+		const value = Number((modelLimitInput && modelLimitInput.value) || 0);
 		safeText('modelLimitValue', String(value));
 	});
 
-	const stateFilterInput = elementById('stateFastFilter') as HTMLInputElement | null;
+	const stateFilterInput = elementById('stateFastFilter');
 	stateFilterInput?.addEventListener('input', () => {
 		renderTopStates();
 		if (setChartDefaults()) {
-			renderStateChart();
+			if (appState.chartsHydrated) {
+				renderStateChart();
+			} else {
+				scheduleChartHydration(8);
+			}
 		}
-		const val = Number(stateFilterInput.value || 0);
+		const val = Number((stateFilterInput && stateFilterInput.value) || 0);
 		safeText('stateFastFilterValue', `${val}%`);
 	});
 
@@ -487,9 +525,15 @@ function bindControls() {
 	elementById('clearStateSelection')?.addEventListener('click', () => {
 		clearStateSelection();
 		if (setChartDefaults()) {
-			renderStateChart();
+			if (appState.chartsHydrated) {
+				renderStateChart();
+			} else {
+				scheduleChartHydration(8);
+			}
 		}
 	});
+
+	appState.controlsBound = true;
 }
 
 function showFatalError(error) {
@@ -501,6 +545,10 @@ function showFatalError(error) {
 
 async function bootstrap() {
 	try {
+		// evitar re-run se já inicializado (por ex. hot-reload ou execução repetida)
+		if (appState.initialized) {
+			return;
+		}
 		const embeddedNode = elementById('analysisData');
 		if (embeddedNode?.textContent) {
 			try {
@@ -523,7 +571,7 @@ async function bootstrap() {
 
 		// Ajustes dinâmicos dos controles: definir limites e rótulos em PT-BR
 		// 1) manufacturerChartType: opções legíveis
-		const manufacturerSelect = elementById('manufacturerChartType') as HTMLSelectElement | null;
+		const manufacturerSelect = elementById('manufacturerChartType');
 		if (manufacturerSelect) {
 			manufacturerSelect.innerHTML = `
 				<option value="doughnut">Rosca</option>
@@ -533,7 +581,7 @@ async function bootstrap() {
 		}
 
 		// 2) modelLimit: ajustar max para quantidade de modelos disponíveis
-		const modelLimitInput = elementById('modelLimit') as HTMLInputElement | null;
+		const modelLimitInput = elementById('modelLimit');
 		const modelLimitValueNode = elementById('modelLimitValue');
 		const availableModels = appState.data?.tables?.top_models?.length || 0;
 		if (modelLimitInput) {
@@ -544,11 +592,11 @@ async function bootstrap() {
 			}
 		}
 		if (modelLimitValueNode) {
-			modelLimitValueNode.textContent = String(modelLimitInput?.value || '0');
+			modelLimitValueNode.textContent = String((modelLimitInput && modelLimitInput.value) || '0');
 		}
 
 		// 3) stateFastFilter: exibir em porcentagem e definir range 0-100
-		const stateFilterInput = elementById('stateFastFilter') as HTMLInputElement | null;
+		const stateFilterInput = elementById('stateFastFilter');
 		const stateFilterValueNode = elementById('stateFastFilterValue');
 		if (stateFilterInput) {
 			stateFilterInput.min = '0';
@@ -559,11 +607,12 @@ async function bootstrap() {
 			}
 		}
 		if (stateFilterValueNode) {
-			stateFilterValueNode.textContent = `${stateFilterInput?.value || '0'}%`;
+			stateFilterValueNode.textContent = `${(stateFilterInput && stateFilterInput.value) || '0'}%`;
 		}
 
 		renderContentOnly();
 		scheduleChartHydration();
+		appState.initialized = true;
 	} catch (error) {
 		showFatalError(error instanceof Error ? error.message : String(error));
 	}

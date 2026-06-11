@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ES2021",
+    "lib": ["ES2021", "DOM"],
+    "strict": true,
+    "noImplicitAny": true,
+    "outDir": "./docs/site",
+    "rootDir": "./web_src"
+  },
+  "include": ["web_src/**/*.ts"],
+  "exclude": ["docs/site", "node_modules", ".venv"]
+}

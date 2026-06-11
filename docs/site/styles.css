@@ -317,14 +317,11 @@ table,
 
 .chart-card {
 	min-height: clamp(240px, 36vw, 350px);
-	height: clamp(240px, 36vw, 350px);
-	display: flex;
-	flex-direction: column;
 }
 
 .chart-card canvas {
-	flex: 1;
-	min-height: 0;
+	width: 100% !important;
+	height: calc(100% - 34px) !important;
 }
 
 .table-grid,
@@ -434,7 +431,6 @@ li {
 
 	.chart-card {
 		min-height: 250px;
-		height: 250px;
 	}
 
 	.table-wrapper {

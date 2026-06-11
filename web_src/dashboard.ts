@@ -1,11 +1,70 @@
-const appState = {
+declare const Chart: any;
+
+interface TopModel {
+	modelo: string;
+	fabricante: string;
+	quantidade: number;
+	market_share: number;
+}
+
+interface TopState {
+	estado: string;
+	stations: number;
+	cities: number;
+	fast_dc_rate: number;
+	avg_power_kw: number;
+	attractiveness_score: number;
+}
+
+interface ChartData {
+	labels: string[];
+	values: number[];
+}
+
+interface AnalysisData {
+	executive_summary: string;
+	meta: {
+		dataset_origin: string;
+		generated_at: string;
+	};
+	kpis: {
+		total_units: number;
+		total_models: number;
+		total_manufacturers: number;
+		top_manufacturer: string;
+		top_manufacturer_share: number;
+		growth_cagr: number;
+		recommended_state: string;
+	};
+	insights: string[];
+	recommendations: string[];
+	tables: {
+		top_models: TopModel[];
+		top_states: TopState[];
+	};
+	charts: {
+		manufacturer_share: ChartData;
+		yearly_sales: ChartData;
+		monthly_sales: ChartData;
+	};
+}
+
+interface AppState {
+	data: AnalysisData | null;
+	charts: Record<string, any>;
+	controlsBound: boolean;
+	initialized: boolean;
+	chartsHydrated: boolean;
+	selectedState: string | null;
+}
+
+const appState: AppState = {
 	data: null,
 	charts: {},
-	// evita dupla inicializacao / múltiplos listeners quando o script é re-executado
 	controlsBound: false,
 	initialized: false,
-	// marca que os charts já foram hidratados uma vez
 	chartsHydrated: false,
+	selectedState: null,
 };
 
 const integerFormatter = new Intl.NumberFormat('pt-BR');
@@ -14,7 +73,7 @@ const decimalFormatter = new Intl.NumberFormat('pt-BR', {
 	maximumFractionDigits: 1,
 });
 
-function setChartDefaults() {
+function setChartDefaults(): boolean {
 	if (typeof Chart === 'undefined') {
 		return false;
 	}
@@ -24,18 +83,26 @@ function setChartDefaults() {
 	return true;
 }
 
-function elementById(id) {
+function elementById(id: string): HTMLElement | null {
 	return document.getElementById(id);
 }
 
-function safeText(id, value) {
+function inputById(id: string): HTMLInputElement | null {
+	return document.getElementById(id) as HTMLInputElement | null;
+}
+
+function selectById(id: string): HTMLSelectElement | null {
+	return document.getElementById(id) as HTMLSelectElement | null;
+}
+
+function safeText(id: string, value: string): void {
 	const node = elementById(id);
 	if (node) {
 		node.textContent = value;
 	}
 }
 
-function escapeHtml(value) {
+function escapeHtml(value: string | number): string {
 	return String(value)
 		.replaceAll('&', '&amp;')
 		.replaceAll('<', '&lt;')
@@ -44,11 +111,11 @@ function escapeHtml(value) {
 		.replaceAll("'", '&#039;');
 }
 
-function chartOrNull(key) {
+function chartOrNull(key: string): any | null {
 	return appState.charts[key] ?? null;
 }
 
-function createOrReplaceChart(key, canvasId, config) {
+function createOrReplaceChart(key: string, canvasId: string, config: object): void {
 	const canvas = elementById(canvasId);
 	if (!canvas || typeof Chart === 'undefined') {
 		return;
@@ -62,8 +129,9 @@ function createOrReplaceChart(key, canvasId, config) {
 	appState.charts[key] = new Chart(canvas, config);
 }
 
-function renderSummary() {
+function renderSummary(): void {
 	const data = appState.data;
+	if (!data) return;
 	safeText('summaryText', data.executive_summary);
 	safeText('datasetSource', `Fonte: ${data.meta.dataset_origin}`);
 	safeText(
@@ -72,8 +140,9 @@ function renderSummary() {
 	);
 }
 
-function renderKpis() {
-	const kpis = appState.data.kpis;
+function renderKpis(): void {
+	const kpis = appState.data?.kpis;
+	if (!kpis) return;
 	safeText('kpiTotalUnits', integerFormatter.format(kpis.total_units));
 	safeText('kpiTotalModels', integerFormatter.format(kpis.total_models));
 	safeText('kpiManufacturers', integerFormatter.format(kpis.total_manufacturers));
@@ -85,61 +154,56 @@ function renderKpis() {
 	safeText('kpiRecommendedState', kpis.recommended_state);
 }
 
-function renderLists() {
+function renderLists(): void {
 	const insightsNode = elementById('insightsList');
 	const recommendationsNode = elementById('recommendationsList');
 
-	if (insightsNode) {
+	if (insightsNode && appState.data) {
 		insightsNode.innerHTML = appState.data.insights
-			.map((item) => `<li>${escapeHtml(item)}</li>`)
+			.map((item: string) => `<li>${escapeHtml(item)}</li>`)
 			.join('');
 	}
 
-	if (recommendationsNode) {
+	if (recommendationsNode && appState.data) {
 		recommendationsNode.innerHTML = appState.data.recommendations
-			.map((item) => `<li>${escapeHtml(item)}</li>`)
+			.map((item: string) => `<li>${escapeHtml(item)}</li>`)
 			.join('');
 	}
 }
 
-function renderTopModels() {
+function renderTopModels(): void {
 	const tableBody = elementById('topModelsTable');
-	const modelLimit = Number(elementById('modelLimit')?.value || 12);
+	const modelLimit = Number(inputById('modelLimit')?.value || 12);
 	safeText('modelLimitValue', String(modelLimit));
 
-	if (!tableBody) {
+	if (!tableBody || !appState.data) {
 		return;
 	}
 
 	const rows = appState.data.tables.top_models.slice(0, modelLimit);
 	tableBody.innerHTML = rows
 		.map(
-			(row) =>
-				`<tr>
-`
-				+ `<td data-label="Modelo">${escapeHtml(row.modelo)}</td>
-`
-				+ `<td data-label="Fabricante">${escapeHtml(row.fabricante)}</td>
-`
-				+ `<td data-label="Quantidade">${integerFormatter.format(row.quantidade)}</td>
-`
-				+ `<td data-label="Market Share (%)">${decimalFormatter.format(row.market_share)}</td>
-`
+			(row: TopModel) =>
+				`<tr>\n`
+				+ `<td data-label="Modelo">${escapeHtml(row.modelo)}</td>\n`
+				+ `<td data-label="Fabricante">${escapeHtml(row.fabricante)}</td>\n`
+				+ `<td data-label="Quantidade">${integerFormatter.format(row.quantidade)}</td>\n`
+				+ `<td data-label="Market Share (%)">${decimalFormatter.format(row.market_share)}</td>\n`
 				+ `</tr>`
 		)
 		.join('');
 }
 
-function selectedFastFilter() {
-	return Number(elementById('stateFastFilter')?.value || 0);
+function selectedFastFilter(): number {
+	return Number(selectById('stateFastFilter')?.value || inputById('stateFastFilter')?.value || 0);
 }
 
-function filteredStates() {
+function filteredStates(): TopState[] {
 	const threshold = selectedFastFilter();
-	return appState.data.tables.top_states.filter((row) => row.fast_dc_rate >= threshold);
+	return appState.data?.tables.top_states.filter((row: TopState) => row.fast_dc_rate >= threshold) ?? [];
 }
 
-function renderTopStates() {
+function renderTopStates(): void {
 	const tableBody = elementById('topStatesTable');
 	const threshold = selectedFastFilter();
 	safeText('stateFastFilterValue', `${threshold}%`);
@@ -156,29 +220,23 @@ function renderTopStates() {
 
 	tableBody.innerHTML = rows
 		.map(
-			(row) =>
-				`<tr>
-`
-				+ `<td data-label="Estado">${escapeHtml(row.estado)}</td>
-`
-				+ `<td data-label="Estacoes">${integerFormatter.format(row.stations)}</td>
-`
-				+ `<td data-label="Cidades">${integerFormatter.format(row.cities)}</td>
-`
-				+ `<td data-label="Fast DC (%)">${decimalFormatter.format(row.fast_dc_rate)}</td>
-`
-				+ `<td data-label="Potencia Media (kW)">${decimalFormatter.format(row.avg_power_kw)}</td>
-`
-				+ `<td data-label="Score">${decimalFormatter.format(row.attractiveness_score)}</td>
-`
+			(row: TopState) =>
+				`<tr>\n`
+				+ `<td data-label="Estado">${escapeHtml(row.estado)}</td>\n`
+				+ `<td data-label="Estacoes">${integerFormatter.format(row.stations)}</td>\n`
+				+ `<td data-label="Cidades">${integerFormatter.format(row.cities)}</td>\n`
+				+ `<td data-label="Fast DC (%)">${decimalFormatter.format(row.fast_dc_rate)}</td>\n`
+				+ `<td data-label="Potencia Media (kW)">${decimalFormatter.format(row.avg_power_kw)}</td>\n`
+				+ `<td data-label="Score">${decimalFormatter.format(row.attractiveness_score)}</td>\n`
 				+ `</tr>`
 		)
 		.join('');
 }
 
-function renderManufacturerChart() {
-	const chartType = elementById('manufacturerChartType')?.value || 'doughnut';
-	const source = appState.data.charts.manufacturer_share;
+function renderManufacturerChart(): void {
+	const chartType = selectById('manufacturerChartType')?.value || 'doughnut';
+	const source = appState.data?.charts.manufacturer_share;
+	if (!source) return;
 	createOrReplaceChart('manufacturerChart', 'manufacturerChart', {
 		type: chartType,
 		data: {
@@ -202,7 +260,7 @@ function renderManufacturerChart() {
 				},
 				tooltip: {
 					callbacks: {
-						label(context) {
+						label(context: any) {
 							return `Unidades: ${integerFormatter.format(context.parsed)}`;
 						},
 					},
@@ -219,8 +277,9 @@ function renderManufacturerChart() {
 	});
 }
 
-function renderYearlyChart() {
-	const source = appState.data.charts.yearly_sales;
+function renderYearlyChart(): void {
+	const source = appState.data?.charts.yearly_sales;
+	if (!source) return;
 	createOrReplaceChart('yearlySalesChart', 'yearlySalesChart', {
 		type: 'line',
 		data: {
@@ -243,10 +302,10 @@ function renderYearlyChart() {
 			plugins: {
 				tooltip: {
 					callbacks: {
-						title(context) {
+						title(context: any[]) {
 							return `Ano ${context[0].label}`;
 						},
-						label(context) {
+						label(context: any) {
 							return `Unidades: ${integerFormatter.format(context.parsed.y)}`;
 						},
 					},
@@ -261,8 +320,9 @@ function renderYearlyChart() {
 	});
 }
 
-function renderMonthlyChart() {
-	const source = appState.data.charts.monthly_sales;
+function renderMonthlyChart(): void {
+	const source = appState.data?.charts.monthly_sales;
+	if (!source) return;
 	createOrReplaceChart('monthlySalesChart', 'monthlySalesChart', {
 		type: 'bar',
 		data: {
@@ -288,22 +348,22 @@ function renderMonthlyChart() {
 	});
 }
 
-function renderStateChart() {
+function renderStateChart(): void {
 	const rows = filteredStates();
 	createOrReplaceChart('stateStationsChart', 'stateStationsChart', {
 		type: 'bar',
 		data: {
-			labels: rows.map((row) => row.estado),
+			labels: rows.map((row: TopState) => row.estado),
 			datasets: [
 				{
 					label: 'Quantidade de estacoes',
-					data: rows.map((row) => row.stations),
+					data: rows.map((row: TopState) => row.stations),
 					backgroundColor: '#0fa95b',
 					borderRadius: 8,
 				},
 				{
 					label: 'Fast DC (%)',
-					data: rows.map((row) => row.fast_dc_rate),
+					data: rows.map((row: TopState) => row.fast_dc_rate),
 					backgroundColor: '#82f8b4',
 					borderRadius: 8,
 					yAxisID: 'y1',
@@ -313,7 +373,7 @@ function renderStateChart() {
 		options: {
 			responsive: true,
 			maintainAspectRatio: false,
-			onClick(event, elements, chart) {
+			onClick(event: any, elements: any[], chart: any) {
 				if (!elements.length) {
 					return;
 				}
@@ -328,10 +388,10 @@ function renderStateChart() {
 			plugins: {
 				tooltip: {
 					callbacks: {
-						title(context) {
+						title(context: any[]) {
 							return String(context[0].label);
 						},
-						label(context) {
+						label(context: any) {
 							return `${context.dataset.label}: ${integerFormatter.format(context.parsed.y)}`;
 						},
 					},
@@ -355,7 +415,7 @@ function renderStateChart() {
 	});
 }
 
-function downloadFile(filename, content, mimeType) {
+function downloadFile(filename: string, content: string, mimeType: string): void {
 	const blob = new Blob([content], { type: mimeType });
 	const url = URL.createObjectURL(blob);
 	const link = document.createElement('a');
@@ -367,24 +427,25 @@ function downloadFile(filename, content, mimeType) {
 	URL.revokeObjectURL(url);
 }
 
-function exportModelsCsv() {
+function exportModelsCsv(): void {
+	if (!appState.data) return;
 	const header = ['Modelo', 'Fabricante', 'Quantidade', 'Market Share (%)'];
-	const rows = appState.data.tables.top_models.slice(0, Number(elementById('modelLimit')?.value || 12));
-	const csv = [header.join(';'), ...rows.map((row) => [row.modelo, row.fabricante, row.quantidade, row.market_share].join(';'))].join('\n');
+	const rows = appState.data.tables.top_models.slice(0, Number(inputById('modelLimit')?.value || 12));
+	const csv = [header.join(';'), ...rows.map((row: TopModel) => [row.modelo, row.fabricante, row.quantidade, row.market_share].join(';'))].join('\n');
 	downloadFile('top_modelos.csv', csv, 'text/csv;charset=utf-8;');
 }
 
-function exportStatesJson() {
+function exportStatesJson(): void {
 	const rows = filteredStates();
 	downloadFile('top_estados.json', JSON.stringify(rows, null, 2), 'application/json');
 }
 
-function clearStateSelection() {
+function clearStateSelection(): void {
 	appState.selectedState = null;
 	renderStateDetail();
 }
 
-function renderStateDetail() {
+function renderStateDetail(): void {
 	const panel = elementById('stateDetailPanel');
 	if (!panel) {
 		return;
@@ -395,7 +456,7 @@ function renderStateDetail() {
 		return;
 	}
 
-	const row = appState.data.tables.top_states.find((item) => item.estado === appState.selectedState);
+	const row = appState.data?.tables.top_states.find((item: TopState) => item.estado === appState.selectedState);
 	if (!row) {
 		panel.innerHTML = `<p>O estado selecionado nao esta mais no filtro atual: ${escapeHtml(appState.selectedState)}.</p>`;
 		return;
@@ -411,7 +472,7 @@ function renderStateDetail() {
 	`;
 }
 
-function renderContentOnly() {
+function renderContentOnly(): void {
 	renderSummary();
 	renderKpis();
 	renderLists();
@@ -419,10 +480,8 @@ function renderContentOnly() {
 	renderTopStates();
 }
 
-function renderChartsOnly() {
-	// se já hidratamos os charts e os dados nao mudaram, evitar re-render completo
+function renderChartsOnly(): void {
 	if (appState.chartsHydrated) {
-		// atualizar apenas detalhes e estados que dependem de filtros
 		renderManufacturerChart();
 		renderStateDetail();
 		return;
@@ -437,15 +496,15 @@ function renderChartsOnly() {
 	appState.chartsHydrated = true;
 }
 
-function renderAll() {
+function renderAll(): void {
 	renderContentOnly();
 	renderChartsOnly();
 }
 
-function scheduleChartHydration(maxAttempts = 24) {
+function scheduleChartHydration(maxAttempts = 24): void {
 	const requiredChartKeys = ['manufacturerChart', 'yearlySalesChart', 'monthlySalesChart', 'stateStationsChart'];
 
-	const attempt = (remaining) => {
+	const attempt = (remaining: number): void => {
 		if (!appState.data) {
 			return;
 		}
@@ -458,38 +517,35 @@ function scheduleChartHydration(maxAttempts = 24) {
 			return;
 		}
 
-		// Tenta renderizar os charts e verifica se as instâncias foram criadas.
 		renderChartsOnly();
 
-		const allCreated = requiredChartKeys.every((k) => !!appState.charts[k]);
+		const allCreated = requiredChartKeys.every((k: string) => !!appState.charts[k]);
 		if (!allCreated && remaining > 0) {
-			// aguarda um pouco e tenta novamente
 			window.setTimeout(() => attempt(remaining - 1), 250);
 			return;
 		}
 	};
 
 	if ('requestIdleCallback' in window) {
-		window.requestIdleCallback(() => attempt(maxAttempts), { timeout: 1000 });
+		(window as any).requestIdleCallback(() => attempt(maxAttempts), { timeout: 1000 });
 		return;
 	}
 
-	window.setTimeout(() => attempt(maxAttempts), 0);
+	globalThis.setTimeout(() => attempt(maxAttempts), 0);
 }
 
-function bindControls() {
+function bindControls(): void {
 	if (appState.controlsBound) {
 		return;
 	}
 
-	const manufacturerSelect = elementById('manufacturerChartType');
+	const manufacturerSelect = selectById('manufacturerChartType');
 	manufacturerSelect?.addEventListener('change', () => {
 		if (setChartDefaults()) {
 			renderManufacturerChart();
 			return;
 		}
 
-		// se ja hidratamos os charts anteriormente, só renderiza o manufacturer
 		if (appState.chartsHydrated) {
 			renderManufacturerChart();
 			return;
@@ -498,15 +554,14 @@ function bindControls() {
 		scheduleChartHydration(12);
 	});
 
-	// Atualiza a tabela quando o slider de limite de modelos muda e atualiza o label
-	const modelLimitInput = elementById('modelLimit');
+	const modelLimitInput = inputById('modelLimit');
 	modelLimitInput?.addEventListener('input', () => {
 		renderTopModels();
-		const value = Number((modelLimitInput && modelLimitInput.value) || 0);
+		const value = Number(modelLimitInput?.value || 0);
 		safeText('modelLimitValue', String(value));
 	});
 
-	const stateFilterInput = elementById('stateFastFilter');
+	const stateFilterInput = inputById('stateFastFilter');
 	stateFilterInput?.addEventListener('input', () => {
 		renderTopStates();
 		if (setChartDefaults()) {
@@ -516,7 +571,7 @@ function bindControls() {
 				scheduleChartHydration(8);
 			}
 		}
-		const val = Number((stateFilterInput && stateFilterInput.value) || 0);
+		const val = Number(stateFilterInput?.value || 0);
 		safeText('stateFastFilterValue', `${val}%`);
 	});
 
@@ -536,23 +591,22 @@ function bindControls() {
 	appState.controlsBound = true;
 }
 
-function showFatalError(error) {
+function showFatalError(error: string): void {
 	const summaryNode = elementById('summaryText');
 	if (summaryNode) {
 		summaryNode.textContent = `Erro ao carregar dashboard: ${error}`;
 	}
 }
 
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
 	try {
-		// evitar re-run se já inicializado (por ex. hot-reload ou execução repetida)
 		if (appState.initialized) {
 			return;
 		}
 		const embeddedNode = elementById('analysisData');
 		if (embeddedNode?.textContent) {
 			try {
-				appState.data = JSON.parse(embeddedNode.textContent);
+				appState.data = JSON.parse(embeddedNode.textContent) as AnalysisData;
 			} catch (embeddedError) {
 				console.warn('Falha ao ler dados embutidos. Tentando analysis.json...', embeddedError);
 			}
@@ -564,14 +618,12 @@ async function bootstrap() {
 				throw new Error(`Falha HTTP ${response.status}`);
 			}
 
-			appState.data = await response.json();
+			appState.data = await response.json() as AnalysisData;
 		}
 
 		bindControls();
 
-		// Ajustes dinâmicos dos controles: definir limites e rótulos em PT-BR
-		// 1) manufacturerChartType: opções legíveis
-		const manufacturerSelect = elementById('manufacturerChartType');
+		const manufacturerSelect = selectById('manufacturerChartType');
 		if (manufacturerSelect) {
 			manufacturerSelect.innerHTML = `
 				<option value="doughnut">Rosca</option>
@@ -580,8 +632,7 @@ async function bootstrap() {
 			`;
 		}
 
-		// 2) modelLimit: ajustar max para quantidade de modelos disponíveis
-		const modelLimitInput = elementById('modelLimit');
+		const modelLimitInput = inputById('modelLimit');
 		const modelLimitValueNode = elementById('modelLimitValue');
 		const availableModels = appState.data?.tables?.top_models?.length || 0;
 		if (modelLimitInput) {
@@ -592,11 +643,10 @@ async function bootstrap() {
 			}
 		}
 		if (modelLimitValueNode) {
-			modelLimitValueNode.textContent = String((modelLimitInput && modelLimitInput.value) || '0');
+			modelLimitValueNode.textContent = String(modelLimitInput?.value || '0');
 		}
 
-		// 3) stateFastFilter: exibir em porcentagem e definir range 0-100
-		const stateFilterInput = elementById('stateFastFilter');
+		const stateFilterInput = inputById('stateFastFilter');
 		const stateFilterValueNode = elementById('stateFastFilterValue');
 		if (stateFilterInput) {
 			stateFilterInput.min = '0';
@@ -607,7 +657,7 @@ async function bootstrap() {
 			}
 		}
 		if (stateFilterValueNode) {
-			stateFilterValueNode.textContent = `${(stateFilterInput && stateFilterInput.value) || '0'}%`;
+			stateFilterValueNode.textContent = `${stateFilterInput?.value || '0'}%`;
 		}
 
 		renderContentOnly();
